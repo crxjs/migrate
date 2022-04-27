@@ -1,9 +1,11 @@
+import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { codemod } from './main'
+import { codemod } from './codemod'
 
 test('simple js vite config', () => {
-  const config = resolve(__dirname, '../tests/vite.config.js')
-  const result = codemod({ config })
+  const config = resolve(__dirname, '../fixtures/vite.config.js')
+  const code = readFileSync(config, { encoding: 'utf-8' })
+  const result = codemod({ code, isTypeScript: false })
 
   expect(result).not.toMatch('import { chromeExtension }')
   expect(result).not.toMatch(`from 'rollup-plugin-chrome-extension'`)
@@ -15,8 +17,9 @@ test('simple js vite config', () => {
 })
 
 test('ts vite config with type import', () => {
-  const config = resolve(__dirname, '../tests/vite.config.ts')
-  const result = codemod({ config })
+  const config = resolve(__dirname, '../fixtures/vite.config.ts')
+  const code = readFileSync(config, { encoding: 'utf-8' })
+  const result = codemod({ code, isTypeScript: true })
 
   expect(result).not.toMatch('import { chromeExtension }')
   expect(result).not.toMatch(`from 'rollup-plugin-chrome-extension'`)
@@ -24,7 +27,7 @@ test('ts vite config with type import', () => {
     'chromeExtension({ manifest, contentScripts: { preambleCode: false } }),',
   )
 
-  expect(result).toMatch('import { crx }')
+  expect(result).toMatch('import { crx, defineManifest }')
   expect(result).toMatch(`from '@crxjs/vite-plugin'`)
   expect(result).toMatch(
     'crx({ manifest, contentScripts: { preambleCode: false } }),',
