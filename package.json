@@ -16,8 +16,9 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "dev:src": "rollup -c --watch",
+    "dev:build": "rollup -c --watch",
     "dev:types": "tsc --noEmit --watch",
+    "dev:run": "nodemon --watch bin bin/main.js -- --dry",
     "format": "prettier --write .",
     "lint": "eslint --ext .js,.ts .",
     "test": "jest"
@@ -29,6 +30,7 @@
     "commander": "^9.2.0",
     "detect-package-manager": "^2.0.1",
     "diff": "^5.0.0",
+    "execa": "^6.1.0",
     "prompts": "^2.4.2",
     "recast": "^0.20.5"
   },

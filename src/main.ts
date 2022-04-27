@@ -1,22 +1,103 @@
-import { program } from 'commander'
-import { isAbsolute, resolve } from 'path'
-import { readFileSync } from 'fs'
+import chalk from 'chalk'
+import { Command } from 'commander'
+import { detect } from 'detect-package-manager'
+import { diffLines } from 'diff'
+import { readdirSync } from 'fs'
+import { readFile, writeFile } from 'fs/promises'
+import { isAbsolute, relative, resolve } from 'path'
+import prompts from 'prompts'
 import { codemod } from './codemod'
-import { questions, update } from './prompts'
+import { execa } from 'execa'
 
+const program = new Command()
 program
   .description(
     'Migrate your Chrome Extension project from RPCE@beta to @crxjs/vite-plugin',
   )
   .name('@crxjs/migrate')
-  .option('-c, --config <filename>', 'Vite config filename')
-  .option('-w, --write', 'Update Vite config')
+  .option('-f, --file <filename>', 'Vite config filename')
+  .option('-d, --dry', 'Dry run')
+program.parse(process.argv)
 
-const options: { config: string } = program.opts()
-if (!isAbsolute(options.config))
-  options.config = resolve(process.cwd(), options.config)
+const {
+  file = readdirSync(process.cwd()).find((f) => f.startsWith('vite.config')),
+  dry = false,
+}: {
+  file?: string
+  dry?: boolean
+} = program.opts()
+const pm = await detect()
 
-const answers = await questions(options)
-const code = readFileSync(options.config, { encoding: 'utf-8' })
-const result = codemod({ code, isTypeScript: options.config.endsWith('ts') })
-update({ code, result, ...answers })
+try {
+  if (file) {
+    const resolved = isAbsolute(file) ? file : resolve(process.cwd(), file)
+    const local = relative(process.cwd(), resolved)
+
+    const code = await readFile(resolved, { encoding: 'utf-8' })
+    const modded = codemod({ code, isTypeScript: file.endsWith('.ts') })
+    const diff = diffLines(code, modded)
+    let output = ''
+    diff.forEach((part) => {
+      // grey for common parts
+      let color = chalk.grey
+      // green for additions
+      if (part.added) color = chalk.green
+      // red for deletions
+      else if (part.removed) color = chalk.red
+
+      output += color(part.value)
+    })
+    console.log('---------')
+    console.log(output)
+    console.log('---------')
+
+    const {
+      applyChanges = false,
+      installCrxjs = false,
+      removeRpce = false,
+    }: {
+      applyChanges?: boolean
+      installCrxjs?: boolean
+      removeRpce?: boolean
+    } = await prompts([
+      {
+        name: 'applyChanges',
+        type: 'confirm',
+        initial: true,
+        message: `Apply these changes to ${chalk.cyan(local)}`,
+      },
+      {
+        name: 'installCrxjs',
+        type: 'confirm',
+        initial: true,
+        message: `Install ${chalk.cyan(
+          '@crxjs/vite-plugin',
+        )} using ${chalk.cyan(pm)}`,
+      },
+      {
+        name: 'removeRpce',
+        type: 'confirm',
+        initial: true,
+        message: `Remove ${chalk.cyan('rollup-plugin-chrome-extension')}`,
+      },
+    ])
+
+    if (!dry && applyChanges && installCrxjs) {
+      await execa(pm, [pm === 'yarn' ? 'add' : 'install', '@crxjs/vite-plugin'])
+      await writeFile(resolved, modded)
+      if (removeRpce) await execa(pm, ['rm', 'rollup-plugin-chrome-extension'])
+      console.log('Project migrated to @crxjs/vite-plugin')
+    } else {
+      console.log('No changes made.')
+    }
+  } else {
+    console.log(`Please specify a config file using the "--file" flag:`)
+    console.log(
+      chalk.cyan(
+        `${pm === 'pnpm' ? 'pnpx' : 'npx'} @crxjs/migrate --file <vite config>`,
+      ),
+    )
+  }
+} catch (error) {
+  console.error(error)
+}
