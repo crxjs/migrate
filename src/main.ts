@@ -1,17 +1,22 @@
+import { program } from 'commander'
+import { isAbsolute, resolve } from 'path'
 import { readFileSync } from 'fs'
-import { parse, print } from 'recast'
-import * as tsParser from 'recast/parsers/typescript'
+import { codemod } from './codemod'
+import { questions, update } from './prompts'
 
-export function codemod({ config }: { config: string }): string {
-  const code = readFileSync(config, { encoding: 'utf-8' })
-  const ast = config.endsWith('ts')
-    ? parse(code, { parser: tsParser })
-    : parse(code)
+program
+  .description(
+    'Migrate your Chrome Extension project from RPCE@beta to @crxjs/vite-plugin',
+  )
+  .name('@crxjs/migrate')
+  .option('-c, --config <filename>', 'Vite config filename')
+  .option('-w, --write', 'Update Vite config')
 
-  // TODO: rename rpce import
-  // TODO: rename plugin function import
-  // TODO: rename plugin function call
+const options: { config: string } = program.opts()
+if (!isAbsolute(options.config))
+  options.config = resolve(process.cwd(), options.config)
 
-  const result = print(ast)
-  return result.code
-}
+const answers = await questions(options)
+const code = readFileSync(options.config, { encoding: 'utf-8' })
+const result = codemod({ code, isTypeScript: options.config.endsWith('ts') })
+update({ code, result, ...answers })
