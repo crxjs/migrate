@@ -13,8 +13,8 @@ function isExecaError(x: unknown): x is ExecaError {
   return x instanceof Error && 'command' in x && 'stdout' in x && 'stderr' in x
 }
 
-const check = chalk.reset.green('✔')
-const fail = chalk.reset.red('✘')
+const check = chalk.green('✔')
+const fail = chalk.red('✘')
 
 const program = new Command()
 program
@@ -86,9 +86,8 @@ try {
       console.log(output)
       console.log('---------')
     } else {
-      console.log(
-        chalk.bold(`${fail} No changes to apply to ${chalk.cyan(local)}`),
-      )
+      const message = chalk.bold(`No changes to apply to ${chalk.cyan(local)}`)
+      console.log(`${fail} ${message}`)
       questions.shift()
     }
 
@@ -108,11 +107,11 @@ try {
     })
 
     if (aborted) {
-      console.log(chalk.bold(`${fail} No changes made.`))
+      console.log(`${fail} ${chalk.bold('No changes made.')}`)
     } else {
       if (applyChanges) {
         await writeFile(resolved, modded)
-        console.log(chalk.bold(`${check} Updated ${chalk.cyan(local)}`))
+        console.log(`${check} ${chalk.bold(`Updated ${chalk.cyan(local)}`)}`)
       }
       if (installCrxjs) {
         const subprocess = execa(pm, [
@@ -123,7 +122,9 @@ try {
         subprocess.stdout?.pipe(process.stdout)
         await subprocess
         console.log(
-          chalk.bold(`${check} Installed ${chalk.cyan('@crxjs/vite-plugin')}`),
+          `${check} ${chalk.bold(
+            `Installed ${chalk.cyan('@crxjs/vite-plugin')}`,
+          )}`,
         )
       }
       if (removeRpce) {
@@ -134,21 +135,23 @@ try {
         subprocess.stdout?.pipe(process.stdout)
         await subprocess
         console.log(
-          chalk.bold(
-            `${check} Removed ${chalk.cyan('rollup-plugin-chrome-extension')}`,
-          ),
+          `${check} ${chalk.bold(
+            `Removed ${chalk.cyan('rollup-plugin-chrome-extension')}`,
+          )}`,
         )
       }
       console.log(
-        chalk.bold(
-          `${check} Project migrated to ${chalk.cyan('@crxjs/vite-plugin')} 🎉`,
-        ),
+        `${check} ${chalk.bold(
+          `Project migrated to ${chalk.cyan('@crxjs/vite-plugin')} 🎉`,
+        )}`,
       )
     }
   } else {
     console.log(
-      `Unable to find ${chalk.cyan('vite.config.js')} or ${chalk.cyan(
-        'vite.config.ts',
+      `${fail} ${chalk.bold(
+        `Unable to find ${chalk.cyan('vite.config.js')} or ${chalk.cyan(
+          'vite.config.ts',
+        )}`,
       )}`,
     )
     console.log(`You can specify a config file using the "--file" flag:`)
