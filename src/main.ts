@@ -102,18 +102,21 @@ try {
       console.log('No changes made.')
     } else {
       if (applyChanges) await writeFile(resolved, modded)
-      if (installCrxjs)
-        console.log(
-          await execa(pm, [
-            pm === 'yarn' ? 'add' : 'install',
-            pm === 'yarn' ? '--dev' : '--save-dev',
-            '@crxjs/vite-plugin',
-          ]),
-        )
-      if (removeRpce)
-        console.log(
-          await execa(pm, ['remove', 'rollup-plugin-chrome-extension']),
-        )
+      if (installCrxjs) {
+        const subprocess = await execa(pm, [
+          pm === 'yarn' ? 'add' : 'install',
+          pm === 'yarn' ? '--dev' : '--save-dev',
+          '@crxjs/vite-plugin',
+        ])
+        console.log(subprocess.stdout)
+      }
+      if (removeRpce) {
+        const subprocess = await execa(pm, [
+          'remove',
+          'rollup-plugin-chrome-extension',
+        ])
+        console.log(subprocess.stdout)
+      }
       console.log('Project migrated to @crxjs/vite-plugin')
     }
   } else {
