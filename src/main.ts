@@ -89,7 +89,8 @@ try {
         '@crxjs/vite-plugin',
       ])
       await writeFile(resolved, modded)
-      if (removeRpce) await execa(pm, ['rm', 'rollup-plugin-chrome-extension'])
+      if (removeRpce)
+        await execa(pm, ['remove', 'rollup-plugin-chrome-extension'])
       console.log('Project migrated to @crxjs/vite-plugin')
     } else {
       console.log('No changes made.')
