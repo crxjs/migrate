@@ -5,7 +5,7 @@ import { diffLines } from 'diff'
 import { readdirSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { isAbsolute, relative, resolve } from 'path'
-import prompts from 'prompts'
+import prompts, { PromptObject } from 'prompts'
 import { codemod } from './codemod'
 import { execa } from 'execa'
 
@@ -32,34 +32,11 @@ try {
   if (file) {
     const resolved = isAbsolute(file) ? file : resolve(process.cwd(), file)
     const local = relative(process.cwd(), resolved)
-
-    const code = await readFile(resolved, { encoding: 'utf-8' })
-    const modded = codemod({ code, isTypeScript: file.endsWith('.ts') })
-    const diff = diffLines(code, modded)
-    let output = ''
-    diff.forEach((part) => {
-      // grey for common parts
-      let color = chalk.grey
-      // green for additions
-      if (part.added) color = chalk.green
-      // red for deletions
-      else if (part.removed) color = chalk.red
-
-      output += color(part.value)
-    })
-    console.log('---------')
-    console.log(output)
-    console.log('---------')
-
-    const {
-      applyChanges = false,
-      installCrxjs = false,
-      removeRpce = false,
-    }: {
-      applyChanges?: boolean
-      installCrxjs?: boolean
-      removeRpce?: boolean
-    } = await prompts([
+    const questions: [
+      PromptObject<'applyChanges'>,
+      PromptObject<'installCrxjs'>,
+      PromptObject<'removeRpce'>,
+    ] = [
       {
         name: 'applyChanges',
         type: 'confirm',
@@ -80,20 +57,62 @@ try {
         initial: true,
         message: `Remove ${chalk.cyan('rollup-plugin-chrome-extension')}`,
       },
-    ])
+    ]
 
-    if (!dry && applyChanges && installCrxjs) {
-      await execa(pm, [
-        pm === 'yarn' ? 'add' : 'install',
-        pm === 'yarn' ? '--dev' : '--save-dev',
-        '@crxjs/vite-plugin',
-      ])
-      await writeFile(resolved, modded)
-      if (removeRpce)
-        await execa(pm, ['remove', 'rollup-plugin-chrome-extension'])
-      console.log('Project migrated to @crxjs/vite-plugin')
+    const code = await readFile(resolved, { encoding: 'utf-8' })
+    const modded = codemod({ code, isTypeScript: file.endsWith('.ts') })
+    const hasDiff = code !== modded
+    if (hasDiff) {
+      const diff = diffLines(code, modded)
+      let output = ''
+      diff.forEach((part) => {
+        // grey for common parts
+        let color = chalk.grey
+        // green for additions
+        if (part.added) color = chalk.green
+        // red for deletions
+        else if (part.removed) color = chalk.red
+
+        output += color(part.value)
+      })
+      console.log('---------')
+      console.log(output)
+      console.log('---------')
     } else {
+      console.log(`No changes to apply for ${chalk.cyan(local)}`)
+      questions.shift()
+    }
+
+    const answers: {
+      applyChanges?: boolean
+      installCrxjs?: boolean
+      removeRpce?: boolean
+    } = await prompts(questions)
+    const abort =
+      dry ||
+      Object.values(answers).filter((x) => typeof x === 'boolean').length !==
+        questions.length
+
+    console.log('answers', answers)
+    console.log('keys', Object.keys(answers))
+
+    if (abort) {
       console.log('No changes made.')
+    } else {
+      if (answers.installCrxjs)
+        console.log(
+          await execa(pm, [
+            pm === 'yarn' ? 'add' : 'install',
+            pm === 'yarn' ? '--dev' : '--save-dev',
+            '@crxjs/vite-plugin',
+          ]),
+        )
+      if (answers.applyChanges) await writeFile(resolved, modded)
+      if (answers.removeRpce)
+        console.log(
+          await execa(pm, ['remove', 'rollup-plugin-chrome-extension']),
+        )
+      console.log('Project migrated to @crxjs/vite-plugin')
     }
   } else {
     console.log(`Please specify a config file using the "--file" flag:`)
