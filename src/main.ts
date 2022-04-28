@@ -79,27 +79,30 @@ try {
       console.log(output)
       console.log('---------')
     } else {
-      console.log(`No changes to apply for ${chalk.cyan(local)}`)
+      console.log(`No changes to apply to ${chalk.cyan(local)}`)
       questions.shift()
     }
 
-    const answers: {
+    let aborted = dry
+    const {
+      applyChanges,
+      installCrxjs,
+      removeRpce,
+    }: {
       applyChanges?: boolean
       installCrxjs?: boolean
       removeRpce?: boolean
-    } = await prompts(questions)
-    const abort =
-      dry ||
-      Object.values(answers).filter((x) => typeof x === 'boolean').length !==
-        questions.length
+    } = await prompts(questions, {
+      onCancel() {
+        aborted = true
+      },
+    })
 
-    console.log('answers', answers)
-    console.log('keys', Object.keys(answers))
-
-    if (abort) {
+    if (aborted) {
       console.log('No changes made.')
     } else {
-      if (answers.installCrxjs)
+      if (applyChanges) await writeFile(resolved, modded)
+      if (installCrxjs)
         console.log(
           await execa(pm, [
             pm === 'yarn' ? 'add' : 'install',
@@ -107,15 +110,19 @@ try {
             '@crxjs/vite-plugin',
           ]),
         )
-      if (answers.applyChanges) await writeFile(resolved, modded)
-      if (answers.removeRpce)
+      if (removeRpce)
         console.log(
           await execa(pm, ['remove', 'rollup-plugin-chrome-extension']),
         )
       console.log('Project migrated to @crxjs/vite-plugin')
     }
   } else {
-    console.log(`Please specify a config file using the "--file" flag:`)
+    console.log(
+      `Unable to find ${chalk.cyan('vite.config.js')} or ${chalk.cyan(
+        'vite.config.ts',
+      )}`,
+    )
+    console.log(`You can specify a config file using the "--file" flag:`)
     console.log(chalk.cyan(`npx @crxjs/migrate --file <vite config>`))
   }
 } catch (error) {
