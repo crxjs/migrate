@@ -124,18 +124,12 @@ try {
           'rollup-plugin-chrome-extension',
         ])
         subprocess.stdout?.pipe(process.stdout)
-        subprocess.stderr?.pipe(process.stderr)
         await subprocess
-          .then(() => {
-            console.log(
-              chalk.bold(
-                `${check} Removed ${chalk.cyan(
-                  'rollup-plugin-chrome-extension',
-                )}`,
-              ),
-            )
-          })
-          .catch()
+        console.log(
+          chalk.bold(
+            `${check} Removed ${chalk.cyan('rollup-plugin-chrome-extension')}`,
+          ),
+        )
       }
       console.log(
         chalk.bold(
