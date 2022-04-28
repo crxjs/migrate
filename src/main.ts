@@ -108,12 +108,13 @@ try {
         )
       }
       if (installCrxjs) {
-        const subprocess = await execa(pm, [
+        const subprocess = execa(pm, [
           pm === 'yarn' ? 'add' : 'install',
           pm === 'yarn' ? '--dev' : '--save-dev',
           '@crxjs/vite-plugin@latest',
         ])
-        console.log(subprocess.stdout)
+        subprocess.stdout?.pipe(process.stdout)
+        await subprocess
         console.log(
           chalk.bold(
             `${chalk.green('✔')} Installed ${chalk.cyan('@crxjs/vite-plugin')}`,
@@ -121,11 +122,12 @@ try {
         )
       }
       if (removeRpce) {
-        const subprocess = await execa(pm, [
+        const subprocess = execa(pm, [
           'remove',
           'rollup-plugin-chrome-extension',
         ])
-        console.log(subprocess.stdout)
+        subprocess.stdout?.pipe(process.stdout)
+        await subprocess
         console.log(
           chalk.bold(
             `${chalk.green('✔')} Removed ${chalk.cyan(
