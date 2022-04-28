@@ -92,11 +92,7 @@ try {
     }
   } else {
     console.log(`Please specify a config file using the "--file" flag:`)
-    console.log(
-      chalk.cyan(
-        `${pm === 'pnpm' ? 'pnpx' : 'npx'} @crxjs/migrate --file <vite config>`,
-      ),
-    )
+    console.log(chalk.cyan(`npx @crxjs/migrate --file <vite config>`))
   }
 } catch (error) {
   console.error(error)
