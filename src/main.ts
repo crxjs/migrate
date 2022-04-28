@@ -101,11 +101,10 @@ try {
     if (aborted) {
       console.log('No changes made.')
     } else {
+      const check = chalk.reset.green('✔')
       if (applyChanges) {
         await writeFile(resolved, modded)
-        console.log(
-          chalk.bold(`${chalk.green('✔')} Updated ${chalk.cyan(local)}`),
-        )
+        console.log(chalk.bold(`${check} Updated ${chalk.cyan(local)}`))
       }
       if (installCrxjs) {
         const subprocess = execa(pm, [
@@ -116,9 +115,7 @@ try {
         subprocess.stdout?.pipe(process.stdout)
         await subprocess
         console.log(
-          chalk.bold(
-            `${chalk.green('✔')} Installed ${chalk.cyan('@crxjs/vite-plugin')}`,
-          ),
+          chalk.bold(`${check} Installed ${chalk.cyan('@crxjs/vite-plugin')}`),
         )
       }
       if (removeRpce) {
@@ -130,17 +127,13 @@ try {
         await subprocess
         console.log(
           chalk.bold(
-            `${chalk.green('✔')} Removed ${chalk.cyan(
-              'rollup-plugin-chrome-extension',
-            )}`,
+            `${check} Removed ${chalk.cyan('rollup-plugin-chrome-extension')}`,
           ),
         )
       }
       console.log(
         chalk.bold(
-          `${chalk.green('✔')} Project migrated to ${chalk.cyan(
-            '@crxjs/vite-plugin',
-          )} 🎉`,
+          `${check} Project migrated to ${chalk.cyan('@crxjs/vite-plugin')} 🎉`,
         ),
       )
     }
