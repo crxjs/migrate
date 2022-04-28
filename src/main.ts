@@ -101,14 +101,18 @@ try {
     if (aborted) {
       console.log('No changes made.')
     } else {
-      if (applyChanges) await writeFile(resolved, modded)
+      if (applyChanges) {
+        await writeFile(resolved, modded)
+        console.log(`✔️ Updated ${chalk.cyan(local)}`)
+      }
       if (installCrxjs) {
         const subprocess = await execa(pm, [
           pm === 'yarn' ? 'add' : 'install',
           pm === 'yarn' ? '--dev' : '--save-dev',
-          '@crxjs/vite-plugin',
+          '@crxjs/vite-plugin@latest',
         ])
         console.log(subprocess.stdout)
+        console.log(`✔️ Installed ${chalk.cyan('@crxjs/vite-plugin')}`)
       }
       if (removeRpce) {
         const subprocess = await execa(pm, [
@@ -116,8 +120,11 @@ try {
           'rollup-plugin-chrome-extension',
         ])
         console.log(subprocess.stdout)
+        console.log(
+          `✔️ Removed ${chalk.cyan('rollup-plugin-chrome-extension')}`,
+        )
       }
-      console.log('Project migrated to @crxjs/vite-plugin')
+      console.log(`✔️ Project migrated to ${chalk.cyan('@crxjs/vite-plugin')}`)
     }
   } else {
     console.log(
