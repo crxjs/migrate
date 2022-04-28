@@ -38,13 +38,13 @@ export function codemod({
             s.imported.name === 'chromeExtension',
         )
         const rpceSpecifier = path.value.specifiers[index]
-        path.value.specifiers[index] = builders.importSpecifier(
-          builders.identifier('crx'),
-        )
 
         /* ---------- UPDATE FUNCTION CALLEE NAME ---------- */
 
-        if (rpceSpecifier.local?.name === 'chromeExtension')
+        if (rpceSpecifier?.local?.name === 'chromeExtension') {
+          path.value.specifiers[index] = builders.importSpecifier(
+            builders.identifier('crx'),
+          )
           visit(ast, {
             visitCallExpression(path) {
               if (
@@ -58,6 +58,7 @@ export function codemod({
               this.traverse(path)
             },
           })
+        }
 
         this.traverse(path)
       }

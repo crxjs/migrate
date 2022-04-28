@@ -16,6 +16,20 @@ test('simple js vite config', () => {
   expect(result).toMatch('plugins: [crx({ manifest })]')
 })
 
+test('simple js vite config with crx import', () => {
+  const config = resolve(__dirname, '../fixtures/vite-crx.config.js')
+  const code = readFileSync(config, { encoding: 'utf-8' })
+  const result = codemod({ code, isTypeScript: false })
+
+  expect(result).not.toMatch('import { chromeExtension }')
+  expect(result).not.toMatch(`from 'rollup-plugin-chrome-extension'`)
+  expect(result).not.toMatch('plugins: [chromeExtension({ manifest })]')
+
+  expect(result).toMatch('import { crx }')
+  expect(result).toMatch(`from '@crxjs/vite-plugin'`)
+  expect(result).toMatch('plugins: [crx({ manifest })]')
+})
+
 test('ts vite config with type import', () => {
   const config = resolve(__dirname, '../fixtures/vite.config.ts')
   const code = readFileSync(config, { encoding: 'utf-8' })
