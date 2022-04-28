@@ -18,7 +18,7 @@
     "build": "rollup -c",
     "dev:build": "rollup -c --watch",
     "dev:types": "tsc --noEmit --watch",
-    "dev:run": "nodemon --watch bin bin/main.js -- --dry",
+    "dev:run": "nodemon --watch bin bin/main.js -- --file fixtures/vite.config.ts --dry",
     "format": "prettier --write .",
     "lint": "eslint --ext .js,.ts .",
     "test": "jest"
