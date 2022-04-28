@@ -10,5 +10,13 @@ export default defineConfig({
     banner: '#!/usr/bin/env node',
   },
   plugins: [commonjs(), resolve(), esbuild({ target: 'esnext' })],
-  external: ['fs/promises'],
+  external: [
+    'fs/promises',
+    'node:path',
+    'node:buffer',
+    'node:process',
+    'node:child_process',
+    'node:os',
+    'node:url',
+  ],
 })
