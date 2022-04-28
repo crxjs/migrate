@@ -13,6 +13,9 @@ function isExecaError(x: unknown): x is ExecaError {
   return x instanceof Error && 'command' in x && 'stdout' in x && 'stderr' in x
 }
 
+const check = chalk.reset.green('✔')
+const fail = chalk.reset.red('✘')
+
 const program = new Command()
 program
   .description(
@@ -83,7 +86,9 @@ try {
       console.log(output)
       console.log('---------')
     } else {
-      console.log(`No changes to apply to ${chalk.cyan(local)}`)
+      console.log(
+        chalk.bold(`${fail} No changes to apply to ${chalk.cyan(local)}`),
+      )
       questions.shift()
     }
 
@@ -103,9 +108,8 @@ try {
     })
 
     if (aborted) {
-      console.log('No changes made.')
+      console.log(chalk.bold(`${fail} No changes made.`))
     } else {
-      const check = chalk.reset.green('✔')
       if (applyChanges) {
         await writeFile(resolved, modded)
         console.log(chalk.bold(`${check} Updated ${chalk.cyan(local)}`))
