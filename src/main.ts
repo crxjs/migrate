@@ -7,7 +7,11 @@ import { readFile, writeFile } from 'fs/promises'
 import { isAbsolute, relative, resolve } from 'path'
 import prompts, { PromptObject } from 'prompts'
 import { codemod } from './codemod'
-import { execa } from 'execa'
+import { execa, ExecaError } from 'execa'
+
+function isExecaError(x: unknown): x is ExecaError {
+  return x instanceof Error && 'command' in x && 'stdout' in x && 'stderr' in x
+}
 
 const program = new Command()
 program
@@ -147,5 +151,9 @@ try {
     console.log(chalk.cyan(`npx @crxjs/migrate --file <vite config>`))
   }
 } catch (error) {
-  console.error(error)
+  if (isExecaError(error)) {
+    console.error(error.stderr)
+  } else {
+    console.error(error)
+  }
 }
