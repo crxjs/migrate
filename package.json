@@ -1,6 +1,6 @@
 {
   "name": "@crxjs/migrate",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "Codemod to migrate from RPCE to CRXJS",
   "keywords": [
     "codemod",
