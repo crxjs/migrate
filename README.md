@@ -1,6 +1,7 @@
 # Migrate from RPCE to `@crxjs/vite-plugin`
 
-RPCE has moved Vite support to a new NPM package. Thanks for joining us on the journey!
+RPCE has moved Vite support to a new NPM package. Thanks for joining us on the
+journey!
 
 Migrate your Chrome Extension project from RPCE to `@crxjs/vite-plugin` using
 this codemod script:
@@ -11,7 +12,10 @@ npx @crxjs/migrate
 
 ## What it does
 
-This script will detect your package manager (npm, pnpm, or yarn) and ask permission to perform one or more of these actions:
+![script running animation](migrate.gif)
+
+This script will detect your package manager (npm, pnpm, or yarn) and ask
+permission to perform one or more of these actions:
 
 1. Update your Vite config file
 2. Install `@crxjs/vite-plugin`
